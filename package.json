@@ -1,8 +1,8 @@
 {
   "name": "foundry-test",
   "version": "1.0.0",
-  "description": "This script queries the Morpho Blue lending protocol subgraph on Base network to get information about the top 5 markets.",
-  "main": "query-morpho.js",
+  "description": "A demo project showing how to use Pyth Network's price oracles with Foundry.",
+  "main": "js-scripts/fetch-pyth-data.js",
   "directories": {
     "lib": "lib",
     "test": "test"
