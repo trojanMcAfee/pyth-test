@@ -1,7 +1,7 @@
 const fs = require('fs');
 const https = require('https');
 
-// The price ID for KBTC/USD from the GetPyth contract
+// The price ID for KBTC/BTC from the GetPyth contract
 const priceId = '5dd5ede8b038c39f015746942820595ed69f30c00c3d3700f01d9ec55e027700';
 const url = `https://hermes.pyth.network/api/latest_vaas?ids[]=${priceId}`;
 

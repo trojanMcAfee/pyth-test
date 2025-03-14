@@ -11,7 +11,7 @@ contract GetPyth {
         pyth = IPyth(0x2880aB155794e7179c9eE2e38200202908C17B43);
     }
 
-    function getKbtcUsdPrice(
+    function getKbtcBtcPrice(
         bytes[] calldata priceUpdateData,
         uint maxAgeSeconds
     ) public payable returns (PythStructs.Price memory) {
