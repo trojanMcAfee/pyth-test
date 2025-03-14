@@ -8,13 +8,31 @@ This project demonstrates how to use Pyth Network's price oracles with Foundry. 
 - [Node.js](https://nodejs.org/) installed
 - An Anvil instance running locally
 
+## Environment Setup
+
+Create a `.env` file in the root directory with the following values:
+
+```
+RPC_URL=https://eth-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_API_KEY
+INK_RPC_URL=https://ink-mainnet.g.alchemy.com/v2/YOUR_INK_ALCHEMY_API_KEY
+PRIVATE_KEY=YOUR_PRIVATE_KEY
+```
+
+Note: For local testing with Anvil, you can use this default private key:
+```
+PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+```
+
 ## Getting Started
 
-1. Start by running an Anvil instance in a separate terminal:
+1. Start an Anvil instance as a fork of Ink mainnet in a separate terminal. This is necessary because our contract interacts with the Pyth contract that's deployed on Ink mainnet:
 
 ```bash
-anvil
+source .env
+anvil --fork-url $INK_RPC_URL --fork-block-number 8442000
 ```
+
+The block number can be adjusted as needed, but using a specific block number ensures consistent behavior across tests.
 
 2. Fetch the real price data from Pyth Network using the provided Node.js script:
 
