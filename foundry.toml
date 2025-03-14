@@ -3,4 +3,7 @@ src = "src"
 out = "out"
 libs = ["lib"]
 
+# Add file permissions to read pyth-data.json
+fs_permissions = [{ access = "read", path = "./pyth-data.json" }]
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

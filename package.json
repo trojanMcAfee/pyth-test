@@ -1,0 +1,20 @@
+{
+  "name": "foundry-test",
+  "version": "1.0.0",
+  "description": "This script queries the Morpho Blue lending protocol subgraph on Base network to get information about the top 5 markets.",
+  "main": "query-morpho.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@pythnetwork/pyth-sdk-solidity": "^4.0.0",
+    "dotenv": "^16.4.7"
+  }
+}
