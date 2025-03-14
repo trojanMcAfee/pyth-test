@@ -1,6 +1,6 @@
 # Pyth Price Oracle Demo
 
-This project demonstrates how to use Pyth Network's price oracles with Foundry. It includes scripts to fetch real-time price data for KBTC/USD and interact with it through a Solidity contract.
+This project demonstrates how to use Pyth Network's price oracles with Foundry. It includes scripts to fetch real-time price data for KBTC/BTC and interact with it through a Solidity contract.
 
 ## Prerequisites
 
@@ -22,21 +22,21 @@ anvil
 node js-scripts/fetch-pyth-data.js
 ```
 
-This will create a `pyth-data.json` file with the latest price data for KBTC/USD.
+This will create a `pyth-data.json` file with the latest price data for KBTC/BTC.
 
 3. Run the Foundry script to deploy the contract and query the price:
 
 ```bash
-forge script script/GetPythPrice.s.sol:GetPythPriceScript --rpc-url http://localhost:8545 --broadcast -vvvv
+forge script script/GetPythPrice.s.sol:GetPythPriceScript --rpc-url http://localhost:8545 --broadcast -vv
 ```
 
 ## How It Works
 
-1. The Node.js script (`js-scripts/fetch-pyth-data.js`) fetches the latest price feed data from Pyth's API for KBTC/USD.
+1. The Node.js script (`js-scripts/fetch-pyth-data.js`) fetches the latest price feed data from Pyth's API for KBTC/BTC.
 2. The data is saved to a JSON file.
 3. The Foundry script (`GetPythPrice.s.sol`) reads this data and uses it to:
    - Deploy the `GetPyth` contract
-   - Call the `getKbtcUsdPrice` function with the real price data
+   - Call the `getKbtcBtcPrice` function with the real price data
    - Display the price information in a human-readable format
 
 ## Understanding Pyth Price Data
@@ -47,7 +47,7 @@ Pyth prices include:
 - **expo**: An exponent to determine the actual decimal places
 - **publishTime**: When the price was published
 
-The script automatically converts these values to display a human-readable price in USD.
+The script automatically converts these values to display a human-readable price.
 
 ## Files
 
