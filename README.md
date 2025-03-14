@@ -1,40 +1,56 @@
-# Morpho Blue Base Subgraph Query Tool
+# Pyth Price Oracle Demo
 
-This script queries the Morpho Blue lending protocol subgraph on Base network to get information about the top 5 markets.
+This project demonstrates how to use Pyth Network's price oracles with Foundry. It includes scripts to fetch real-time price data for KBTC/USD and interact with it through a Solidity contract.
 
 ## Prerequisites
 
-- Node.js installed on your machine
-- An API key from The Graph's Subgraph Studio
+- [Foundry](https://book.getfoundry.sh/getting-started/installation) installed
+- [Node.js](https://nodejs.org/) installed
+- An Anvil instance running locally
 
-## Getting an API key
+## Getting Started
 
-1. Go to [Subgraph Studio](https://thegraph.com/studio/)
-2. Connect your wallet to sign in
-3. Click on the **API Keys** tab in the navigation menu
-4. Click the button to create a new API key
-5. Name your API key (e.g., "Morpho-Query")
-6. Your new API key will be created and displayed in the API keys table
-
-## Setup and Usage
-
-1. Replace `YOUR_API_KEY` in the `query-morpho.js` file with your actual API key
-2. Open a terminal and navigate to this directory
-3. Run the script with Node.js:
+1. Start by running an Anvil instance in a separate terminal:
 
 ```bash
-node query-morpho.js
+anvil
 ```
 
-## Expected Output
+2. Fetch the real price data from Pyth Network using the provided Node.js script:
 
-The script will output the following information for each of the top 5 markets:
-- Market identifier
-- Collateral token symbol
-- Loan token symbol
-- Total supplied amount
-- Total borrowed amount
-- Total value locked (in USD)
-- Utilization rate
-- Supply APY
-- Borrow APY
+```bash
+node js-scripts/fetch-pyth-data.js
+```
+
+This will create a `pyth-data.json` file with the latest price data for KBTC/USD.
+
+3. Run the Foundry script to deploy the contract and query the price:
+
+```bash
+forge script script/GetPythPrice.s.sol:GetPythPriceScript --rpc-url http://localhost:8545 --broadcast -vvvv
+```
+
+## How It Works
+
+1. The Node.js script (`js-scripts/fetch-pyth-data.js`) fetches the latest price feed data from Pyth's API for KBTC/USD.
+2. The data is saved to a JSON file.
+3. The Foundry script (`GetPythPrice.s.sol`) reads this data and uses it to:
+   - Deploy the `GetPyth` contract
+   - Call the `getKbtcUsdPrice` function with the real price data
+   - Display the price information in a human-readable format
+
+## Understanding Pyth Price Data
+
+Pyth prices include:
+- **price**: The actual price value in integer format
+- **conf**: The confidence interval (indicating the price accuracy)
+- **expo**: An exponent to determine the actual decimal places
+- **publishTime**: When the price was published
+
+The script automatically converts these values to display a human-readable price in USD.
+
+## Files
+
+- **src/GetPyth.sol**: The Solidity contract that interacts with Pyth oracle
+- **js-scripts/fetch-pyth-data.js**: Node.js script to fetch real-time price data
+- **script/GetPythPrice.s.sol**: Foundry script to deploy and test the contract 
