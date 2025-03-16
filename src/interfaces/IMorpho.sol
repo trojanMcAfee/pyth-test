@@ -41,4 +41,9 @@ interface IMorpho {
     event CreateMarket(Id indexed id, MarketParams marketParams);
 
     function createMarket(MarketParams memory marketParams) external;
+
+    function idToMarketParams(Id id)
+        external
+        view
+        returns (address loanToken, address collateralToken, address oracle, address irm, uint256 lltv);
 } 

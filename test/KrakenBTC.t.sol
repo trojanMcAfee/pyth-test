@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {KrakenBTC} from "../src/KrakenBTC.sol";
-import {IMorpho, MarketParams} from "../src/interfaces/IMorpho.sol";
+import {IMorpho, MarketParams, Id} from "../src/interfaces/IMorpho.sol";
 import {Vm} from "forge-std/Vm.sol";
 
 contract KrakenBTCTest is Test {
@@ -14,7 +14,7 @@ contract KrakenBTCTest is Test {
     KrakenBTC public kbtc;
     IMorpho public morpho;
 
-    uint public chainId = 1; //ink: 57073
+    uint public chainId = 57073; //ink: 57073
 
     address public deployer = address(this);
     address public loanToken; 
@@ -42,6 +42,8 @@ contract KrakenBTCTest is Test {
             oracle = 0x13433B1949d9141Be52Ae13Ad7e7E4911228414e; // Redstone BTC/USD
             irm = 0x9515407b1512F53388ffE699524100e7270Ee57B;
             morpho = IMorpho(0x857f3EefE8cbda3Bc49367C996cd664A880d3042);
+            rpcUrl = vm.envString("INK_RPC_URL");
+            blockNumber = 8657564;
         }
 
         vm.createSelectFork(rpcUrl, blockNumber);
@@ -71,6 +73,14 @@ contract KrakenBTCTest is Test {
         }));
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        console.logBytes32(entries[0].topics[1]);
+        bytes32 marketId = entries[0].topics[1];
+        console.logBytes32(marketId);
+
+        (address loanToken_i, address collateralToken_i, address oracle_i, address irm_i, uint256 lltv_i) = morpho.idToMarketParams(Id.wrap(marketId));
+        console.log("loanToken:", loanToken_i);
+        console.log("collateralToken:", collateralToken_i);
+        console.log("oracle:", oracle_i);
+        console.log("irm:", irm_i);
+        console.log("lltv:", lltv_i);
     }
 } 
