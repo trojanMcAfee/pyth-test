@@ -1,74 +1,50 @@
-# Pyth Price Oracle Demo
+# Morpho Market Creation
 
-This project demonstrates how to use Pyth Network's price oracles with Foundry. It includes scripts to fetch real-time price data for KBTC/BTC and interact with it through a Solidity contract.
+This project demonstrates how to create a market on the Morpho protocol using a custom collateral token (KrakenBTC) and a price oracle.
 
-## Prerequisites
+## Project Structure
 
-- [Foundry](https://book.getfoundry.sh/getting-started/installation) installed
-- [Node.js](https://nodejs.org/) installed
-- An Anvil instance running locally
+- `src/KrakenBTC.sol`: A simple ERC20 token representing BTC on Kraken
+- `src/DirectOracle.sol`: A configurable price oracle that implements the Chainlink AggregatorV3Interface
+- `src/interfaces/`: Contains the necessary interfaces for interacting with Morpho
+- `script/CreateMorphoMarket.s.sol`: Script to create a Morpho market with kBTC as collateral
 
-## Environment Setup
+## Setup
 
-Create a `.env` file in the root directory with the following values:
+1. Clone the repository
+2. Install dependencies: `forge install`
+3. Create a `.env` file with your private key and RPC URL:
 
 ```
-RPC_URL=https://eth-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_API_KEY
-INK_RPC_URL=https://ink-mainnet.g.alchemy.com/v2/YOUR_INK_ALCHEMY_API_KEY
-PRIVATE_KEY=YOUR_PRIVATE_KEY
+PRIVATE_KEY=your_private_key_here
+ETHEREUM_RPC_URL=your_ethereum_rpc_url_here
+BASE_RPC_URL=your_base_rpc_url_here
 ```
 
-Note: For local testing with Anvil, you can use this default private key:
-```
-PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-```
+## Usage
 
-## Getting Started
-
-1. Start an Anvil instance as a fork of Ink mainnet in a separate terminal. This is necessary because our contract interacts with the Pyth contract that's deployed on Ink mainnet:
+### Creating a Market on Ethereum
 
 ```bash
-source .env
-anvil --fork-url $INK_RPC_URL --fork-block-number 8442000
+forge script script/CreateMorphoMarket.s.sol --rpc-url $ETHEREUM_RPC_URL --broadcast
 ```
 
-The block number can be adjusted as needed, but using a specific block number ensures consistent behavior across tests.
+### Creating a Market on Base
 
-2. Fetch the real price data from Pyth Network using the provided Node.js script:
+To use Base instead of Ethereum, modify the script to uncomment the Base addresses and comment out the Ethereum addresses.
 
-```bash
-node js-scripts/fetch-pyth-data.js
-```
+## Contracts
 
-This will create a `pyth-data.json` file with the latest price data for KBTC/BTC.
+### KrakenBTC
 
-3. Run the Foundry script to deploy the contract and query the price:
+A simple ERC20 token with 18 decimals that can be used as collateral in Morpho markets.
 
-```bash
-forge script script/GetPythPrice.s.sol:GetPythPriceScript --rpc-url http://localhost:8545 --broadcast -vv
-```
+### DirectOracle
 
-## How It Works
+A price oracle that implements the Chainlink AggregatorV3Interface and provides a configurable price for the KrakenBTC token. The price can be updated using the `setPrice` function.
 
-1. The Node.js script (`js-scripts/fetch-pyth-data.js`) fetches the latest price feed data from Pyth's API for KBTC/BTC.
-2. The data is saved to a JSON file.
-3. The Foundry script (`GetPythPrice.s.sol`) reads this data and uses it to:
-   - Deploy the `GetPyth` contract
-   - Call the `getKbtcBtcPrice` function with the real price data
-   - Display the price information in a human-readable format
+## Notes
 
-## Understanding Pyth Price Data
-
-Pyth prices include:
-- **price**: The actual price value in integer format
-- **conf**: The confidence interval (indicating the price accuracy)
-- **expo**: An exponent to determine the actual decimal places
-- **publishTime**: When the price was published
-
-The script automatically converts these values to display a human-readable price.
-
-## Files
-
-- **src/GetPyth.sol**: The Solidity contract that interacts with Pyth oracle
-- **js-scripts/fetch-pyth-data.js**: Node.js script to fetch real-time price data
-- **script/GetPythPrice.s.sol**: Foundry script to deploy and test the contract 
+- The script attempts to create a market with multiple LLTV (Loan-to-Value) values, starting from 0% and increasing to 98%.
+- Market creation may fail if the parameters are not pre-approved by the Morpho protocol.
+- Make sure you have enough ETH in your wallet to pay for gas fees. 
