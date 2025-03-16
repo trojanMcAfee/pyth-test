@@ -17,37 +17,34 @@ contract KrakenBTCTest is Test {
     uint public chainId = 1; //ink: 57073
 
     address public deployer = address(this);
-    address public loanToken; //USDT for mainnet, USDT0 for ink
+    address public loanToken; 
     address public collateralToken; //kBTC
     address public oracle;
     address public irm;
     uint256 public lltv = 945000000000000000; // 94.5%
-
-    // struct Log {
-    //     bytes32[] topics;
-    //     bytes data;
-    //     address emitter;
-    // }
+    uint public blockNumber;
+    string public rpcUrl;
     
-    function setUp() public {
-        // Create and select a fork of Ethereum mainnet at the specified block
-        vm.createSelectFork(vm.envString("RPC_URL"), 22061417);
-        
+    function setUp() public {        
         // Deploy the KrakenBTC contract
         kbtc = new KrakenBTC();
         collateralToken = address(kbtc);
 
         if (chainId == 1) {
-            loanToken = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+            loanToken = 0xdAC17F958D2ee523a2206206994597C13D831ec7; //USDT
             oracle = 0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c; // Chainlink BTC/USD
             irm = 0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC;
             morpho = IMorpho(0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb);
+            blockNumber = 22061417;
+            rpcUrl = vm.envString("RPC_URL");
         } else if (chainId == 57073) {
-            // loanToken = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-            // oracle = 0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c; // Redstone BTC/USD
-            // irm = 0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC;
-            // morpho = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
+            loanToken = 0x0200C29006150606B650577BBE7B6248F58470c1; //USDT0
+            oracle = 0x13433B1949d9141Be52Ae13Ad7e7E4911228414e; // Redstone BTC/USD
+            irm = 0x9515407b1512F53388ffE699524100e7270Ee57B;
+            morpho = IMorpho(0x857f3EefE8cbda3Bc49367C996cd664A880d3042);
         }
+
+        vm.createSelectFork(rpcUrl, blockNumber);
     }
     
     function testDeployerBalance() public view {
