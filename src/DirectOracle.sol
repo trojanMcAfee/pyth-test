@@ -5,58 +5,77 @@ import "./interfaces/AggregatorV3Interface.sol";
 
 /**
  * @title DirectOracle
- * @dev A minimal price oracle that always returns a fixed BTC price
+ * @dev A simple price oracle that returns a configurable BTC price
  */
 contract DirectOracle is AggregatorV3Interface {
     uint80 private constant ROUND_ID = 1;
-    int256 private constant PRICE = 65000 * 10**8; // $65,000 with 8 decimals
-    uint256 private constant TIMESTAMP = 1716518400; // May 24, 2024
     uint8 private constant DECIMALS_VALUE = 8;
     string private constant DESCRIPTION_TEXT = "kBTC/USD Direct Oracle";
     uint256 private constant VERSION_NUMBER = 1;
     
+    // Default price: $50,000 with 8 decimals
+    int256 private _price = 50000 * 10**8;
+    uint256 private _updatedAt;
+    
     /**
-     * @dev Returns a fixed price data
+     * Constructor for the DirectOracle
+     * Initializes the price to 50000e18 ($50,000)
      */
-    function latestRoundData() external pure override returns (
+    constructor() {
+        _updatedAt = block.timestamp;
+    }
+    
+    /**
+     * @dev Set a new price (for testing purposes)
+     * @param newPrice The new price to set (with 8 decimals)
+     */
+    function setPrice(int256 newPrice) external {
+        _price = newPrice;
+        _updatedAt = block.timestamp;
+    }
+    
+    /**
+     * @dev Returns the current price data
+     */
+    function latestRoundData() external view override returns (
         uint80 roundId,
         int256 answer,
         uint256 startedAt,
         uint256 updatedAt,
         uint80 answeredInRound
     ) {
-        return (ROUND_ID, PRICE, TIMESTAMP, TIMESTAMP, ROUND_ID);
+        return (ROUND_ID, _price, _updatedAt, _updatedAt, ROUND_ID);
     }
     
     /**
-     * @dev Returns data for a specific round ID (always returns the same fixed data)
+     * @dev Returns data for a specific round ID (always returns the current price)
      */
-    function getRoundData(uint80) external pure override returns (
+    function getRoundData(uint80) external view override returns (
         uint80 roundId,
         int256 answer,
         uint256 startedAt,
         uint256 updatedAt,
         uint80 answeredInRound
     ) {
-        return (ROUND_ID, PRICE, TIMESTAMP, TIMESTAMP, ROUND_ID);
+        return (ROUND_ID, _price, _updatedAt, _updatedAt, ROUND_ID);
     }
     
     /**
-     * @dev Returns a fixed number of decimals
+     * @dev Returns the number of decimals
      */
     function decimals() external pure override returns (uint8) {
         return DECIMALS_VALUE;
     }
     
     /**
-     * @dev Returns a fixed description
+     * @dev Returns the description
      */
     function description() external pure override returns (string memory) {
         return DESCRIPTION_TEXT;
     }
     
     /**
-     * @dev Returns a fixed version
+     * @dev Returns the version
      */
     function version() external pure override returns (uint256) {
         return VERSION_NUMBER;
@@ -65,7 +84,7 @@ contract DirectOracle is AggregatorV3Interface {
     /**
      * @dev For compatibility with Morpho Oracle interface
      */
-    function price() external pure returns (uint256) {
-        return uint256(PRICE);
+    function price() external view returns (uint256) {
+        return uint256(_price);
     }
 } 
