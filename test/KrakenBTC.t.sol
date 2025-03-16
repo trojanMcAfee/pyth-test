@@ -75,6 +75,7 @@ contract KrakenBTCTest is Test {
         Vm.Log[] memory entries = vm.getRecordedLogs();
         bytes32 marketId = entries[0].topics[1];
         console.logBytes32(marketId);
+        console.log('market ID ^');
 
         (address loanToken_i, address collateralToken_i, address oracle_i, address irm_i, uint256 lltv_i) = morpho.idToMarketParams(Id.wrap(marketId));
         console.log("loanToken:", loanToken_i);
