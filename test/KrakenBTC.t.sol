@@ -6,6 +6,7 @@ import {console} from "forge-std/console.sol";
 import {KrakenBTC} from "../src/KrakenBTC.sol";
 import {IMorpho, MarketParams, Id} from "../src/interfaces/IMorpho.sol";
 import {Vm} from "forge-std/Vm.sol";
+import {IIrm} from "../src/interfaces/IIrm.sol";
 
 contract KrakenBTCTest is Test {
     // RPC URL and block number are set via Foundry's --fork-url and --fork-block-number flags
@@ -60,6 +61,11 @@ contract KrakenBTCTest is Test {
         assertEq(deployerBalance, 1_000_000 * 10**18);
     }
 
+    function test_redStoneBTCPrice() public view {
+        int256 btcPrice = kbtc.getBTCPrice();
+        console.log('btcPrice: ', btcPrice);
+    }
+
 
     function test_deployMorphoMarket() public {
         vm.recordLogs();
@@ -83,5 +89,43 @@ contract KrakenBTCTest is Test {
         console.log("oracle:", oracle_i);
         console.log("irm:", irm_i);
         console.log("lltv:", lltv_i);
+        
+        console.log('');
+        console.log('rate at target: ', IIrm(irm).rateAtTarget(Id.wrap(marketId)));
+        (
+            uint128 totalSupplyAssets,
+            uint128 totalSupplyShares,
+            uint128 totalBorrowAssets,
+            uint128 totalBorrowShares,
+            uint128 lastUpdate,
+            uint128 fee
+        ) = morpho.market(Id.wrap(marketId));
+
+        console.log('totalSupplyAssets: ', totalSupplyAssets);
+        console.log('totalSupplyShares: ', totalSupplyShares);
+        console.log('totalBorrowAssets: ', totalBorrowAssets);
+        console.log('totalBorrowShares: ', totalBorrowShares);
+        console.log('lastUpdate: ', lastUpdate);
+        console.log('fee: ', fee);
+
+        console.log('');
+        console.log('isIrmEnabled: ', morpho.isIrmEnabled(irm));
+        console.log('isLltvEnabled: ', morpho.isLltvEnabled(lltv));
+
+        // bytes memory supplyCollateralBytes = abi.encodeWithSignature(
+        //     morpho.supplyCollateral.selector,
+        //     MarketParams({
+        //         loanToken: loanToken,
+        //         collateralToken: collateralToken,
+        //         oracle: oracle,
+        //         irm: irm,
+        //         lltv: lltv
+        //     }),
+        //     1000000000000000000,
+        //     deployer,
+        //     ''
+        // );
+        
+        
     }
 } 
