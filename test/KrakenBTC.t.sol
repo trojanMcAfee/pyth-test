@@ -39,6 +39,7 @@ contract KrakenBTCTest is Test {
     IPermit2 public permit2;
     IChainAgnosticBundlerV2 public bundler;
     EIP712Signature public eip712Signature;
+    
     function setUp() public {        
         // Deploy the KrakenBTC contract
         kbtc = new KrakenBTC();
@@ -241,7 +242,7 @@ contract KrakenBTCTest is Test {
     }
 
     
-    function _constructApprove2Data() internal returns (bytes memory) {
+    function _constructApprove2Data() internal view returns (bytes memory) {
         IAllowanceTransfer.PermitDetails memory permitDetails = IAllowanceTransfer.PermitDetails({
             token: address(cbBTC),
             amount: type(uint160).max,
