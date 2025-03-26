@@ -29,7 +29,7 @@ contract KrakenBTCTest is Test {
     string public rpcUrl;
 
     IERC20 public cbBTC;
-
+    IERC20 public USDC;
     bytes32 public marketId;
     
     function setUp() public {        
@@ -63,6 +63,7 @@ contract KrakenBTCTest is Test {
             blockNumber = 22061417;
 
             cbBTC = IERC20(collateralToken);
+            USDC = IERC20(loanToken);
             marketId = 0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836; //cbBTC/USDC
         }
 
@@ -149,11 +150,11 @@ contract KrakenBTCTest is Test {
             
     }
 
-    function test_supplyAndBorrow() public {
+    function test_supplyAndBorrow() public returns(MarketParams memory cbBtcParams, uint256 amount) {
         //Pre-conditions
-        MarketParams memory cbBtcParams = test_supplyCbBTC();
+        cbBtcParams = test_supplyCbBTC();
 
-        uint amount = 10 * 1e8;
+        amount = 1000 * 1e6;
 
         //Actions
         vm.startPrank(deployer);
@@ -167,6 +168,20 @@ contract KrakenBTCTest is Test {
 
         (,uint128 borrowShares,) = morpho.position(marketId, deployer);
         assertEq(sharesBorrowed, borrowShares);
+    }
+
+    function test_supplyBorrowAndPayback() public {
+        //Pre-conditions
+        (MarketParams memory cbBtcParams, uint256 amount) = test_supplyAndBorrow();
+
+        //Actions
+        vm.startPrank(deployer);
+        USDC.approve(address(morpho), amount);
+        (uint256 assetsRepaid,) = morpho.repay(cbBtcParams, amount, 0, deployer, '');
+        vm.stopPrank();
+
+        //Post-conditions
+        assertEq(assetsRepaid, amount);
     }
 
     
