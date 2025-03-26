@@ -241,7 +241,7 @@ contract KrakenBTCTest is Test {
     }
 
     
-    function _constructMulticalData() internal {
+    function _constructApprove2Data() internal returns (bytes memory) {
         IAllowanceTransfer.PermitDetails memory permitDetails = IAllowanceTransfer.PermitDetails({
             token: address(cbBTC),
             amount: type(uint160).max,
@@ -266,13 +266,25 @@ contract KrakenBTCTest is Test {
             false
         );
 
+        return approve2Data;
     }
 
-    function _getSignature(
-        IAllowanceTransfer.PermitDetails memory details,
-        IAllowanceTransfer.PermitSingle memory permitSingle
-    ) internal {
+    function _constructTransferFrom2Data(uint amount_) internal view returns(bytes memory) {
+        return abi.encodeWithSelector(
+            bundler.transferFrom2.selector,
+            address(cbBTC),
+            amount_
+        );
+    }
 
+    function _constructSupplyData(uint amount, MarketParams memory cbBtcParams) internal view returns(bytes memory) {
+        return abi.encodeWithSelector(
+            bundler.morphoSupplyCollateral.selector,
+            cbBtcParams,
+            amount,
+            deployer,
+            ''
+        );
     }
 
 
