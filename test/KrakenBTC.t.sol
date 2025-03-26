@@ -8,6 +8,10 @@ import {IMorpho, MarketParams, Id} from "../src/interfaces/IMorpho.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {IIrm} from "../src/interfaces/IIrm.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IPermit2} from "../src/interfaces/IPermit2.sol";
+import {IChainAgnosticBundlerV2} from "../src/interfaces/IChainAgnosticBundlerV2.sol";
+import {IAllowanceTransfer} from "../src/interfaces/IAllowanceTransfer.sol";
+import {EIP712Signature} from "../src/EIP712/EIP712Signature.sol";
 
 contract KrakenBTCTest is Test {
     // RPC URL and block number are set via Foundry's --fork-url and --fork-block-number flags
@@ -31,7 +35,10 @@ contract KrakenBTCTest is Test {
     IERC20 public cbBTC;
     IERC20 public USDC;
     bytes32 public marketId;
-    
+
+    IPermit2 public permit2;
+    IChainAgnosticBundlerV2 public bundler;
+    EIP712Signature public eip712Signature;
     function setUp() public {        
         // Deploy the KrakenBTC contract
         kbtc = new KrakenBTC();
@@ -65,6 +72,11 @@ contract KrakenBTCTest is Test {
             cbBTC = IERC20(collateralToken);
             USDC = IERC20(loanToken);
             marketId = 0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836; //cbBTC/USDC
+            
+            permit2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
+            bundler = IChainAgnosticBundlerV2(0x23055618898e202386e6c13955a58D3C68200BFB);
+
+            eip712Signature = new EIP712Signature();
         }
 
         vm.createSelectFork(rpcUrl, blockNumber);
@@ -115,6 +127,50 @@ contract KrakenBTCTest is Test {
         int256 btcPrice = kbtc.getBTCPrice();
         console.log('btcPrice: ', btcPrice);
     }
+
+    // function test_2supplyCbBTC() public returns(MarketParams memory cbBtcParams) {
+    //     //Pre-conditions
+    //     (uint256 supplyShares, uint128 borrowShares, uint128 collateral) = 
+    //         morpho.position(marketId, deployer);
+
+    //     assertEq(supplyShares, 0);
+    //     assertEq(borrowShares, 0);
+    //     assertEq(collateral, 0);
+
+    //     cbBtcParams = MarketParams({
+    //         loanToken: loanToken,
+    //         collateralToken: collateralToken,
+    //         oracle: oracle,
+    //         irm: irm,
+    //         lltv: lltv
+    //     });
+    //     uint amount = 100 * 1e8;
+
+    //     bytes memory supplyData = abi.encodeWithSelector(
+    //         IMorpho.supplyCollateral.selector, 
+    //         cbBtcParams, amount, deployer, ''
+    //     );
+    //     console.logBytes4(IMorpho.supplyCollateral.selector);
+
+    //     bytes[] memory data = new bytes[](1);
+    //     data[0] = supplyData;
+
+    //     //Actions
+    //     vm.startPrank(deployer);
+    //     cbBTC.approve(address(morpho), amount);
+    //     // bundler.multicall(data);
+    //     address(morpho).call(supplyData);
+    //     vm.stopPrank();
+
+    //     //Post-conditions
+    //     (uint256 supplyShares_i, uint128 borrowShares_i, uint128 collateral_i) = 
+    //         morpho.position(marketId, deployer);
+
+    //     assertEq(supplyShares_i, 0);
+    //     assertEq(borrowShares_i, 0);
+    //     assertEq(collateral_i, amount);
+            
+    // }
 
     function test_supplyCbBTC() public returns(MarketParams memory cbBtcParams) {
         //Pre-conditions
@@ -185,23 +241,80 @@ contract KrakenBTCTest is Test {
     }
 
     
+    function _constructMulticalData() internal {
+        IAllowanceTransfer.PermitDetails memory permitDetails = IAllowanceTransfer.PermitDetails({
+            token: address(cbBTC),
+            amount: type(uint160).max,
+            expiration: uint48(block.timestamp + 1 days),
+            nonce: 0
+        });
 
+        IAllowanceTransfer.PermitSingle memory permitSingle = IAllowanceTransfer.PermitSingle({
+            details: permitDetails,
+            spender: address(bundler),
+            sigDeadline: block.timestamp + 1 days
+        });
 
-    function multicall(bytes[] memory data) internal {
-        for (uint256 i; i < data.length; ++i) {
-            (bool success, bytes memory returnData) = address(this).delegatecall(data[i]);
+        bytes32 digest = eip712Signature.getPermitSingleDigest(permitSingle);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(deployer, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
 
-            if (!success) _revert(returnData);
-        }
+        bytes memory approve2Data = abi.encodeWithSelector(
+            bundler.approve2.selector, 
+            permitSingle,
+            signature,
+            false
+        );
+
     }
 
-    function _revert(bytes memory returnData) internal pure {
-        uint256 length = returnData.length;
-        require(length > 0, "CALL_FAILED");
+    function _getSignature(
+        IAllowanceTransfer.PermitDetails memory details,
+        IAllowanceTransfer.PermitSingle memory permitSingle
+    ) internal {
 
-        assembly ("memory-safe") {
-            revert(add(32, returnData), length)
-        }
+    }
+
+
+    function test_supplyBorrowPermit2() public {
+        MarketParams memory cbBtcParams = MarketParams({
+            loanToken: loanToken,
+            collateralToken: collateralToken,
+            oracle: oracle,
+            irm: irm,
+            lltv: lltv
+        });
+        uint amount = 100 * 1e8;
+
+        //Unlimited approval to Morpho's bundler
+        vm.startPrank(deployer);
+        // cbBTC.approve(address(permit2), type(uint256).max);
+        // cbBTC.approve(address(morpho), type(uint256).max);
+        cbBTC.approve(address(bundler), type(uint256).max);
+
+        bytes memory supplyData = abi.encodeWithSelector(
+            IMorpho.supplyCollateral.selector,
+            cbBtcParams,
+            amount,
+            deployer,
+            ''
+        );
+
+        bytes memory borrowData = abi.encodeWithSelector(
+            IMorpho.borrow.selector,
+            cbBtcParams,
+            amount,
+            0,
+            deployer,
+            deployer
+        );
+
+        bytes[] memory data = new bytes[](2);
+        data[0] = supplyData;
+        data[1] = borrowData;
+
+        bundler.multicall(data);
+        vm.stopPrank();
     }
 
     
